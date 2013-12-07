@@ -1,9 +1,13 @@
 #include"global.h"
 
+#ifdef _WIN32
 #include<intrin.h>
+#include<conio.h>
+#else
+#include <termios.h>            //termios, TCSANOW, ECHO, ICANON
+#endif
 #include<ctime>
 #include<map>
-#include<conio.h>
 
 primeStats_t primeStats = {0};
 volatile int total_shares = 0;
@@ -507,6 +511,43 @@ static bool IsXptClientConnected()
 
 }
 
+int getNumThreads(void) {
+  // based on code from ceretullis on SO
+  uint32_t numcpu = 1; // in case we fall through;
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+  int mib[4];
+  size_t len = sizeof(numcpu); 
+
+  /* set the mib for hw.ncpu */
+  mib[0] = CTL_HW;
+#ifdef HW_AVAILCPU
+  mib[1] = HW_AVAILCPU;  // alternatively, try HW_NCPU;
+#else
+  mib[1] = HW_NCPU;
+#endif
+  /* get the number of CPUs from the system */
+  sysctl(mib, 2, &numcpu, &len, NULL, 0);
+
+#elif defined(__linux__) || defined(sun) || defined(__APPLE__)
+  numcpu = static_cast<uint32_t>(sysconf(_SC_NPROCESSORS_ONLN));
+#elif defined(_SYSTYPE_SVR4)
+  numcpu = sysconf( _SC_NPROC_ONLN );
+#elif defined(hpux)
+  numcpu = mpctl(MPC_GETNUMSPUS, NULL, NULL);
+#elif defined(_WIN32)
+  SYSTEM_INFO sysinfo;
+  GetSystemInfo( &sysinfo );
+  numcpu = sysinfo.dwNumberOfProcessors;
+#endif
+
+  if( numcpu < 1 )
+    {
+      numcpu = 1;
+    }
+  
+  return numcpu;
+}
+
 /*
 * Queries the work data from the coin client
 * Uses "getblocktemplate"
@@ -624,7 +665,7 @@ void jhMiner_queryWork_primecoin_getwork()
       //printf("data: %.*s...\n", (sint32)min(48, stringData_length), stringData_data);
 
       EnterCriticalSection(&workData.cs);
-      jhMiner_parseHexString((char*)stringData_data, min(128*2, stringData_length), workData.workEntry[0].data);
+      jhMiner_parseHexString((char*)stringData_data, min<uint32>(128*2, stringData_length), workData.workEntry[0].data);
       workData.workEntry[0].dataIsValid = true;
       if (jsonResult_serverData == NULL)
       {
@@ -1346,7 +1387,7 @@ static void RoundSieveAutoTuningWorkerThread(bool bEnabled)
 
          if (ratio > nRoundSievePercentage + 5)
          {
-            if (!PrimeTableGetNextPrime((unsigned int)  primeStats.nPrimorialMultiplier))
+            if (!PrimeTableGetNextPrime((unsigned int&)  primeStats.nPrimorialMultiplier))
                error("PrimecoinMiner() : primorial increment overflow");
             printf( "Sieve/Test ratio: %.01f / %.01f %%  - New PrimorialMultiplier: %u\n", ratio, 100.0 - ratio,  primeStats.nPrimorialMultiplier);
          }
@@ -1354,7 +1395,7 @@ static void RoundSieveAutoTuningWorkerThread(bool bEnabled)
          {
             if ( primeStats.nPrimorialMultiplier > 2)
             {
-               if (!PrimeTableGetPreviousPrime((unsigned int) primeStats.nPrimorialMultiplier))
+               if (!PrimeTableGetPreviousPrime((unsigned int&) primeStats.nPrimorialMultiplier))
                   error("PrimecoinMiner() : primorial decrement overflow");
                printf( "Sieve/Test ratio: %.01f / %.01f %%  - New PrimorialMultiplier: %u\n", ratio, 100.0 - ratio,  primeStats.nPrimorialMultiplier);
             }
@@ -1403,6 +1444,24 @@ bool appQuitSignal = false;
 
 static void input_thread()
 {
+#ifndef _WIN32
+  static struct termios oldt, newt;
+  /*tcgetattr gets the parameters of the current terminal
+    STDIN_FILENO will tell tcgetattr that it should write the settings
+    of stdin to oldt*/
+  tcgetattr( STDIN_FILENO, &oldt);
+  /*now the settings will be copied*/
+  newt = oldt;
+
+  /*ICANON normally takes care that one line at a time will be processed
+    that means it will return if it sees a "\n" or an EOF or an EOL*/
+  newt.c_lflag &= ~(ICANON);          
+
+  /*Those new settings will be set to STDIN
+    TCSANOW tells tcsetattr to change attributes immediately. */
+  tcsetattr( STDIN_FILENO, TCSANOW, &newt);
+#endif
+
    while (true) 
    {
       int input;
@@ -1412,15 +1471,21 @@ static void input_thread()
          appQuitSignal = true;
          Sleep(3200);
          std::exit(0);
-         return;
+#ifdef _WIN32
+	 return;
+#else
+	 /*restore the old settings*/
+	 tcsetattr( STDIN_FILENO, TCSANOW, &oldt);
+	 return;
+#endif
          break;
       case '[':
-         if (!PrimeTableGetPreviousPrime((unsigned int) primeStats.nPrimorialMultiplier))
+         if (!PrimeTableGetPreviousPrime((unsigned int&) primeStats.nPrimorialMultiplier))
             error("PrimecoinMiner() : primorial decrement overflow");	
          printf("Primorial Multiplier: %u\n", primeStats.nPrimorialMultiplier);
          break;
       case ']':
-         if (!PrimeTableGetNextPrime((unsigned int)  primeStats.nPrimorialMultiplier))
+         if (!PrimeTableGetNextPrime((unsigned int&)  primeStats.nPrimorialMultiplier))
             error("PrimecoinMiner() : primorial increment overflow");
          printf("Primorial Multiplier: %u\n", primeStats.nPrimorialMultiplier);
          break;
@@ -1481,7 +1546,13 @@ static void input_thread()
       }
    }
 
+#ifdef _WIN32
    return;
+#else
+   /*restore the old settings*/
+   tcsetattr( STDIN_FILENO, TCSANOW, &oldt);
+   return;
+#endif
 }
 
 
@@ -1806,10 +1877,7 @@ int main(int argc, char **argv)
 {
    // setup some default values
    commandlineInput.port = 10034;
-   SYSTEM_INFO sysinfo;
-   GetSystemInfo( &sysinfo );
-   commandlineInput.numThreads = sysinfo.dwNumberOfProcessors;
-   commandlineInput.numThreads = max(commandlineInput.numThreads, 1);
+   commandlineInput.numThreads = getNumThreads();
    commandlineInput.sieveSize = 1024000; // default maxSieveSize
    commandlineInput.sievePercentage = 10; // default 
    commandlineInput.roundSievePercentage = 70; // default 
@@ -1893,12 +1961,17 @@ int main(int argc, char **argv)
    // init prime table
    GeneratePrimeTable(commandlineInput.sievePrimeLimit);
    printf("Sieve Percentage: %u %%\n", nSievePercentage);
+#ifdef _WIN32
    // init winsock
    WSADATA wsa;
    WSAStartup(MAKEWORD(2,2),&wsa);
    // init critical section
    InitializeCriticalSection(&workData.cs);
+#else
+   pthread_mutex_init(&workData.cs, NULL);
+#endif
    // connect to host
+#ifdef _WIN32
    hostent* hostInfo = gethostbyname(commandlineInput.host);
    if( hostInfo == NULL )
    {
@@ -1913,10 +1986,16 @@ int main(int argc, char **argv)
    }
    char ipText[32];
    esprintf(ipText, "%d.%d.%d.%d", ((ip>>0)&0xFF), ((ip>>8)&0xFF), ((ip>>16)&0xFF), ((ip>>24)&0xFF));
-   if( ((ip>>0)&0xFF) != 255 )
-   {
-      printf("Connecting to '%s' (%d.%d.%d.%d)\n", commandlineInput.host, ((ip>>0)&0xFF), ((ip>>8)&0xFF), ((ip>>16)&0xFF), ((ip>>24)&0xFF));
-   }
+#else
+   struct addrinfo hints, *res;
+   memset(&hints, 0, sizeof(hints));
+   hints.ai_family = AF_INET;
+   getaddrinfo(commandlineInput.host, 0, &hints, &res);
+   char ipText[32];
+   inet_ntop(AF_INET, &((struct sockaddr_in *)res->ai_addr)->sin_addr, ipText, INET_ADDRSTRLEN);
+#endif
+   printf("Connecting to '%s' (%s)\n", commandlineInput.host, ipText);
+
    // setup RPC connection data (todo: Read from command line)
    jsonRequestTarget.ip = ipText;
    jsonRequestTarget.port = commandlineInput.port;

@@ -1,6 +1,34 @@
+#ifdef _WIN32
+
 #pragma comment(lib,"Ws2_32.lib")
 #include<Winsock2.h>
 #include<ws2tcpip.h>
+#include "includes/mpirxx.h"
+#include "includes/mpir.h"
+#ifndef _MSC_VER == 1500
+#include<stdint.h>
+#else
+// stdint.h not present in vs2008, use these defines instead:
+typedef signed char int8_t;
+typedef short int int16_t;
+typedef int int32_t;
+typedef __int64 int64_t;
+
+typedef unsigned char uint8_t;
+typedef unsigned short int uint16_t;
+typedef unsigned int uint32_t;
+typedef unsigned __int64 uint64_t;
+#endif
+
+#else
+
+#include <gmpxx.h>
+#include <gmp.h>
+// #include <mpirxx.h>
+// #include <mpir.h>
+
+#endif
+
 #include"jhlib/JHLib.h"
 
 #include<stdio.h>
@@ -36,27 +64,11 @@ int BN2_uadd(BIGNUM *r, const BIGNUM *a, const BIGNUM *b);
 #include"prime.h"
 #include"jsonrpc.h"
 
-#include "mpirxx.h"
-#include "mpir.h"
-#ifndef _MSC_VER == 1500
-#include<stdint.h>
-#else
-// stdint.h not present in vs2008, use these defines instead:
-typedef signed char int8_t;
-typedef short int int16_t;
-typedef int int32_t;
-typedef __int64 int64_t;
-
-typedef unsigned char uint8_t;
-typedef unsigned short int uint16_t;
-typedef unsigned int uint32_t;
-typedef unsigned __int64 uint64_t;
-#endif
 #include"xptServer.h"
 #include"xptClient.h"
 
-static const int64 COIN = 100000000;
-static const int64 CENT = 1000000;
+static const uint64 COIN = 100000000;
+static const uint64 CENT = 1000000;
 
 
 #define	bswap_16(value)  \
@@ -141,7 +153,7 @@ typedef struct
    volatile float nSieveRounds;
    volatile float nCandidateCount;
 
-	CRITICAL_SECTION cs;
+        CRITICAL_SECTION cs;
 
 	// since we can generate many (useless) primes ultra fast if we simply set sieve size low, 
 	// its better if we only count primes with at least a given difficulty
@@ -210,7 +222,12 @@ extern volatile int valid_shares;
 extern std::set<mpz_class> multiplierSet;
 extern bool appQuitSignal;
 
+#ifdef _WIN32
 extern __declspec( thread ) BN_CTX* pctx;
+#else
+extern BN_CTX* pctx;
+#endif
+
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 #endif

@@ -20,9 +20,15 @@ __declspec( thread ) BN_CTX* pctx = NULL;
 // doesnt need to be the correct time, just a more or less random input value
 uint64 GetTimeMicros()
 {
+#ifdef _WIN32
    LARGE_INTEGER t;
    QueryPerformanceCounter(&t);
    return (uint64)t.QuadPart;
+#else
+   struct timespec ts;
+   clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
+   return ts.tv_sec * 1000000 + ts.tv_nsec / 1000;
+#endif
 }
 
 
@@ -577,7 +583,7 @@ bool TargetGetMint(unsigned int nBits, uint64& nMint)
 }
 
 // Get next target value
-bool TargetGetNext(unsigned int nBits, int64 nInterval, int64 nTargetSpacing, int64 nActualSpacing, unsigned int& nBitsNext)
+bool TargetGetNext(unsigned int nBits, uint64 nInterval, uint64 nTargetSpacing, uint64 nActualSpacing, unsigned int& nBitsNext)
 {
    nBitsNext = nBits;
    // Convert length into fractional difficulty
@@ -940,8 +946,8 @@ bool MineProbablePrimeChain(CSieveOfEratosthenes*& psieve, primecoinBlock_t* blo
          continue;
       }
 
-      primeStats.bestPrimeChainDifficultySinceLaunch = max(primeStats.bestPrimeChainDifficultySinceLaunch, nProbableChainLength);
-
+      if( nProbableChainLength > primeStats.bestPrimeChainDifficultySinceLaunch )
+	primeStats.bestPrimeChainDifficultySinceLaunch = nProbableChainLength;
 
       if(nProbableChainLength >= block->serverData.nBitsForShare)
       {
@@ -1031,8 +1037,8 @@ double GetPrimeDifficulty(unsigned int nBits)
 // Estimate work transition target to longer prime chain
 unsigned int EstimateWorkTransition(unsigned int nPrevWorkTransition, unsigned int nBits, unsigned int nChainLength)
 {
-   int64 nInterval = 500;
-   int64 nWorkTransition = nPrevWorkTransition;
+   uint64 nInterval = 500;
+   uint64 nWorkTransition = nPrevWorkTransition;
    unsigned int nBitsCeiling = 0;
    TargetSetLength(TargetGetLength(nBits)+1, nBitsCeiling);
    unsigned int nBitsFloor = 0;

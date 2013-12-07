@@ -1,5 +1,7 @@
+#ifdef _WIN32
 #include<Windows.h>
-#include"hashTable.h"
+#endif
+#include"JHLib.h"
 
 #ifndef memMgr_alloc
 #define memMgr_alloc(x,y) malloc(y)

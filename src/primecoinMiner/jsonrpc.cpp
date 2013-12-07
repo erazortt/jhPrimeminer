@@ -109,9 +109,14 @@ void jsonRpcServer_newClient(jsonRpcServer_t* jrs, SOCKET s)
 	client->jsonRpcServer = jrs;
 	client->clientSocket = s;
 	// set socket as non-blocking
+#ifdef _WIN32
 	unsigned int nonblocking=1;
 	unsigned int cbRet;
 	WSAIoctl(s, FIONBIO, &nonblocking, sizeof(nonblocking), NULL, 0, (LPDWORD)&cbRet, NULL, NULL);
+#else
+	fcntl(s, F_SETFL, O_NONBLOCK);
+	//TODO: not sure what to do about the recv buffer passed to WSAIoctl here..
+#endif
 	// init recv buffer
 	client->recvIndex = 0;
 	client->recvSize = JSON_INITIAL_RECV_BUFFER_SIZE;
@@ -133,7 +138,7 @@ bool jsonRpcServer_receiveData(jsonRpcServer_t* jrs, jsonRpcClient_t* client)
 		// try to enlarge buffer if allowed
 		if( client->recvSize < JSON_MAX_RECV_BUFFER_SIZE )
 		{
-			client->recvSize = min(client->recvSize*2, JSON_MAX_RECV_BUFFER_SIZE); // double buffer size
+		  client->recvSize = min<unsigned long>(client->recvSize*2, JSON_MAX_RECV_BUFFER_SIZE); // double buffer size
 			client->recvBuffer = (uint8*)realloc(client->recvBuffer, client->recvSize);
 			// recalculate remaining buffer storage
 			remainingRecvSize = client->recvSize - client->recvIndex;

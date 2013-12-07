@@ -676,7 +676,7 @@ void* streamEx_map(stream_t* stream, sint32* size)
 	sint32 rSize = stream_getSize(stream);
 	*size = rSize;
 	if( rSize == 0 )
-		return ""; // return any valid memory address 
+		return NULL; // return any valid memory address 
 	void* mem = malloc(rSize);
 	stream_readData(stream, (void*)mem, rSize);
 	return mem;

@@ -108,6 +108,36 @@ int inline BN2_is_bit_set(const BIGNUM *a, int n)
 	return (int)(((a->d[i])>>j)&((BN_ULONG)1));
 }
 
+#ifndef _WIN32
+#ifdef __GNUC__
+#define clz(x) __builtin_clz(x)
+#define ctz(x) __builtin_ctz(x)
+#else
+static uint32_t ALWAYS_INLINE popcnt( uint32_t x )
+{
+  x -= ((x >> 1) & 0x55555555);
+  x = (((x >> 2) & 0x33333333) + (x & 0x33333333));
+  x = (((x >> 4) + x) & 0x0f0f0f0f);
+  x += (x >> 8);
+  x += (x >> 16);
+  return x & 0x0000003f;
+}
+//static uint32_t ALWAYS_INLINE clz( uint32_t x )
+//{
+//    x |= (x >> 1);
+//    x |= (x >> 2);
+//    x |= (x >> 4);
+//    x |= (x >> 8);
+//    x |= (x >> 16);
+//    return 32 - popcnt(x);
+//}
+static uint32_t ALWAYS_INLINE ctz( uint32_t x )
+{
+  return popcnt((x & -x) - 1);
+}
+
+#endif
+#endif
 /*
  * Counts the number of set bits starting at a value of 1 then 2, 4, 8, 16...
  * If a bit is not set, the method exits and returns the number of bits up to this bit
@@ -115,27 +145,28 @@ int inline BN2_is_bit_set(const BIGNUM *a, int n)
  */
 int inline BN2_nz_num_unset_bits_from_lsb(const BIGNUM *a)
 {
+  sint32 bIdx = 0;
+  uint32 idx = 0;
+  sint32 maxIdx = a->top-1;
+  do 
+    {
 #ifdef _WIN32
-	sint32 bIdx = 0;
-	uint32 idx = 0;
-	sint32 maxIdx = a->top-1;
-	do 
-	{
-		_BitScanForward(&idx, a->d[bIdx]);
-		if( idx==0 )
-		{
-			if( bIdx >= maxIdx )
-				break;
-			continue;
-		}
-		else
-			break;
-	}while(true);
-	return bIdx*32+idx;
-	// _BitScanReverse
+      _BitScanForward(&idx, a->d[bIdx]);
 #else
-	needs implementation
+      idx = ctz(a->d[bIdx]);
 #endif
+      if( idx==0 )
+	{
+	  if( bIdx >= maxIdx )
+	    break;
+	  continue;
+	}
+      else
+	break;
+    }while(true);
+  return bIdx*32+idx;
+  // _BitScanReverse - win32
+  // clz - gcc
 }
 
 
