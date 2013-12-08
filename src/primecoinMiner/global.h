@@ -3,8 +3,8 @@
 #pragma comment(lib,"Ws2_32.lib")
 #include<Winsock2.h>
 #include<ws2tcpip.h>
-#include "mpirxx.h"
-#include "mpir.h"
+#include "includes/mpirxx.h"
+#include "includes/mpir.h"
 #ifndef _MSC_VER == 1500
 #include<stdint.h>
 #else
@@ -22,10 +22,10 @@ typedef unsigned __int64 uint64_t;
 
 #else
 
-//#include <gmpxx.h>
-//#include <gmp.h>
-#include <mpirxx.h>
-#include <mpir.h>
+#include <gmpxx.h>
+#include <gmp.h>
+// #include <mpirxx.h>
+// #include <mpir.h>
 
 #endif
 

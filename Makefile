@@ -1,9 +1,9 @@
 CXX = g++
-CFLAGS = -march=native -mtune=native -Wall -Wextra -std=c++0x -O3 -fomit-frame-pointer
+CFLAGS = -march=native -mtune=native -Wall -Wextra -std=c++0x -O2 -fomit-frame-pointer
 
 OSVERSION := $(shell uname -s)
-LIBS = -lmpir -lmpirxx -lcrypto -lssl -pthread
-#LIBS = -lgmp -lgmpxx -lcrypto -lssl -pthread
+#LIBS = -lmpir -lmpirxx -lcrypto -lssl -pthread
+LIBS = -lgmp -lgmpxx -lcrypto -lssl -pthread
 
 ifeq ($(OSVERSION),Linux)
 	LIBS += -lrt
@@ -11,7 +11,7 @@ endif
 
 # You might need to edit these paths too
 LIBPATHS = -L/usr/local/lib -L/usr/lib
-INCLUDEPATHS = -Isrc/primecoinMiner/includes -I/usr/local/include -I/usr/include
+INCLUDEPATHS = -I/usr/local/include -I/usr/include -Isrc/primecoinMiner/includes/
 
 ifeq ($(OSVERSION),Darwin)
 	GOT_MACPORTS := $(shell which port)
