@@ -22,10 +22,10 @@ typedef unsigned __int64 uint64_t;
 
 #else
 
-#include <gmpxx.h>
-#include <gmp.h>
-// #include <mpirxx.h>
-// #include <mpir.h>
+//#include <gmpxx.h>
+//#include <gmp.h>
+#include <mpirxx.h>
+#include <mpir.h>
 
 #endif
 

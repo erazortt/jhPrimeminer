@@ -2,8 +2,8 @@ CXX = g++
 CFLAGS = -march=native -mtune=native -Wall -Wextra -std=c++0x -O2 -fomit-frame-pointer
 
 OSVERSION := $(shell uname -s)
-#LIBS = -lmpir -lmpirxx -lcrypto -lssl -pthread
-LIBS = -lgmp -lgmpxx -lcrypto -lssl -pthread
+LIBS = -lmpir -lmpirxx -lcrypto -lssl -pthread
+#LIBS = -lgmp -lgmpxx -lcrypto -lssl -pthread
 
 ifeq ($(OSVERSION),Linux)
 	LIBS += -lrt
