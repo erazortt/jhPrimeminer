@@ -1942,14 +1942,14 @@ int main(int argc, char **argv)
    printf("\xBA  jhPrimeMiner - mod by rdebourbon -v3.4beta                   \xBA\n");
    printf("\xBA     merged with hg5fm (mumus) v8.0 build                      \xBA\n");
    printf("\xBA  author: JH (http://ypool.net)                                \xBA\n");
-   printf("\xBA  contributors: x3maniac                                       \xBA\n");
+   printf("\xBA  contributors: x3maniac, tandyuk, MadrMan                     \xBA\n");
    printf("\xBA  Credits: Sunny King for the original Primecoin client&miner  \xBA\n");
    printf("\xBA  Credits: mikaelh for the performance optimizations           \xBA\n");
    printf("\xBA                                                               \xBA\n");
    printf("\xBA  Donations:                                                   \xBA\n");
-   printf("\xBA        XPM: AUwKMCYCacE6Jq1rsLcSEHSNiohHVVSiWv                \xBA\n");
-   printf("\xBA        LTC: LV7VHT3oGWQzG9EKjvSXd3eokgNXj6ciFE                \xBA\n");
-   printf("\xBA        BTC: 1Fph7y622HJ5Cwq4bkzfeZXWep2Jyi5kp7                \xBA\n");
+   printf("\xBA        XPM: APc9K91QGTDzSaRxmai9iHTeewQGnGa1Gs                \xBA\n");
+   printf("\xBA        LTC: LNE5boq368BdVjDEkW1Yqa9cU7gYiuL5Dw                \xBA\n");
+   printf("\xBA        BTC: 123xn4LfxJjH3Wbzq6tCtZzAaZVN6wcEb1                \xBA\n");
    printf("\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC\n");
    printf("Launching miner...\n");
    // set priority lower so the user still can do other things
