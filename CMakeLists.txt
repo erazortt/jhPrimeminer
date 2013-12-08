@@ -54,7 +54,7 @@ set(jhprimeminer_SOURCES
 )
 
 if(UNIX)
-	SET(CMAKE_CXX_FLAGS_RELEASE "-Ofast -DNDEBUG -march=native -mtune=native -fomit-frame-pointer")
+	SET(CMAKE_CXX_FLAGS_RELEASE "-Ofast -DNDEBUG -march=native -mtune=native -fomit-frame-pointer -flto")
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -std=gnu++0x")
 
 else()
