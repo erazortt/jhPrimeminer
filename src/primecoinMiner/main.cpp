@@ -1157,6 +1157,7 @@ void jhMiner_parseCommandline(int argc, char **argv)
             printf("Missing flag after -tune option\n");
             exit(0);
          }
+	 argument = argv[cIdx];
          if (memcmp(argument, "true", 5) == 0 ||  memcmp(argument, "1", 2) == 0)
             commandlineInput.enableCacheTunning = true;
 
