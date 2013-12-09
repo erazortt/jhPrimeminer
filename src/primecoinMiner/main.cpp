@@ -1324,7 +1324,7 @@ static void CacheAutoTuningWorkerThread(bool bEnabled)
          unsigned int nOptimalSize = nL1CacheElementsStart;
          for (  mL1StatIter = mL1Stat.begin(); mL1StatIter != mL1Stat.end(); mL1StatIter++ )
          {
-            if (mL1StatIter->second < minWeveTime)
+            if (mL1StatIter->second <= minWeveTime)
             {
                minWeveTime = mL1StatIter->second;
                nOptimalSize = mL1StatIter->first;
