@@ -1,5 +1,5 @@
 CXX = g++
-#CFLAGS = -march=native -mtune=native -Wall -Wextra -std=c++0x -g -Og
+#CFLAGS = -march=native -mtune=native -Wall -Wextra -std=c++0x -g -O0
 CFLAGS = -march=native -mtune=native -Wall -Wextra -std=c++0x -Ofast -fomit-frame-pointer -flto
 #CFLAGS = -march=native -mtune=native -Wall -Wextra -std=c++0x -O3 -fomit-frame-pointer
 

@@ -156,7 +156,9 @@ class CSieveOfEratosthenes
    sieve_word_t *vfExtendedCompositeBiTwin;
    sieve_word_t *vfExtendedCompositeCunningham1;
    sieve_word_t *vfExtendedCompositeCunningham2;
-   static const unsigned int nWordBits = 8 * sizeof(sieve_word_t);	
+   static const unsigned int nWordBits = 8 * sizeof(sieve_word_t);
+   static const unsigned int nWordNotBits = nWordBits-1;
+   static const unsigned int nWordShift = log2(nWordBits);
 
    unsigned int nCandidatesWords;
    unsigned int nCandidatesBytes;
@@ -182,11 +184,20 @@ class CSieveOfEratosthenes
    //CBlockIndex* pindexPrev;
 
    __inline unsigned int GetWordNum(unsigned int nBitNum) {
-      return nBitNum / nWordBits;
+#ifdef USE_ROTATE
+     return nBitNum >> nWordShift;
+#else
+     return nBitNum / nWordBits;
+#endif
+
    }
 
    __inline sieve_word_t  GetBitMask(unsigned int nBitNum) {
-      return (sieve_word_t)1UL << (nBitNum % nWordBits);
+#ifdef USE_ROTATE
+     return (sieve_word_t)1UL << (nBitNum & nWordNotBits);
+#else
+     return (sieve_word_t)1UL << (nBitNum % nWordBits);
+#endif
    }
 
    void ProcessMultiplier(sieve_word_t *vfComposites, const unsigned int nMinMultiplier, const unsigned int nMaxMultiplier, const std::vector<unsigned int>& vPrimes, unsigned int *vMultipliers, unsigned int nLayerSeq);
@@ -226,7 +237,6 @@ public:
       // bitsets that can be combined to obtain the final bitset of candidates
       vfCompositeLayerCC1 = (sieve_word_t *)malloc(nCandidatesBytes);
       vfCompositeLayerCC2 = (sieve_word_t *)malloc(nCandidatesBytes);
-
       vfExtendedCandidates = (sieve_word_t *)malloc(nSieveExtensions * nCandidatesBytes);
       vfExtendedCompositeBiTwin = (sieve_word_t *)malloc(nSieveExtensions * nCandidatesBytes);
       vfExtendedCompositeCunningham1 = (sieve_word_t *)malloc(nSieveExtensions * nCandidatesBytes);

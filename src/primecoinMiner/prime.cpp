@@ -1463,34 +1463,23 @@ static unsigned int int_invert(unsigned int a, unsigned int nPrime)
 
 void CSieveOfEratosthenes::ProcessMultiplier(sieve_word_t *vfComposites, const unsigned int nMinMultiplier, const unsigned int nMaxMultiplier, const std::vector<unsigned int>& vPrimes, unsigned int *vMultipliers, unsigned int nLayerSeq)
 {
-   // Wipe the part of the array first
-   if (nMinMultiplier < nMaxMultiplier)
-      memset(vfComposites + GetWordNum(nMinMultiplier), 0, (nMaxMultiplier - nMinMultiplier + nWordBits - 1) / nWordBits * sizeof(sieve_word_t));
+  // Wipe the part of the array first
+  if (nMinMultiplier < nMaxMultiplier)
+    memset(vfComposites + GetWordNum(nMinMultiplier), 0, (nMaxMultiplier - nMinMultiplier + nWordBits - 1) / nWordBits * sizeof(sieve_word_t));
 
-   for (unsigned int nPrimeSeqLocal = nMinPrimeSeq; nPrimeSeqLocal < nPrimes; nPrimeSeqLocal++)
-   {
+  for (unsigned int nPrimeSeqLocal = nMinPrimeSeq; nPrimeSeqLocal < nPrimes; nPrimeSeqLocal++)
+    {
       const unsigned int nPrime = vPrimes[nPrimeSeqLocal];
       const unsigned int nMultiplierPos = nPrimeSeqLocal * nSieveLayers + nLayerSeq;
       unsigned int nVariableMultiplier = vMultipliers[nMultiplierPos];
       if (nVariableMultiplier < nMinMultiplier)
-         nVariableMultiplier += (nMinMultiplier - nVariableMultiplier + nPrime - 1) / nPrime * nPrime;
-#ifdef USE_ROTATE
-      const unsigned int nRotateBits = nPrime % nWordBits;
-      sieve_word_t lBitMask = GetBitMask(nVariableMultiplier);
+	nVariableMultiplier += (nMinMultiplier - nVariableMultiplier + nPrime - 1) / nPrime * nPrime;
       for (; nVariableMultiplier < nMaxMultiplier; nVariableMultiplier += nPrime)
-      {
-         vfComposites[GetWordNum(nVariableMultiplier)] |= lBitMask;
-         lBitMask = (lBitMask << nRotateBits) | (lBitMask >> (nWordBits - nRotateBits));
-      }
+	{
+	  vfComposites[GetWordNum(nVariableMultiplier)] |= GetBitMask(nVariableMultiplier);
+	}
       vMultipliers[nMultiplierPos] = nVariableMultiplier;
-#else
-      for (; nVariableMultiplier < nMaxMultiplier; nVariableMultiplier += nPrime)
-      {
-         vfComposites[GetWordNum(nVariableMultiplier)] |= GetBitMask(nVariableMultiplier);
-      }
-      vMultipliers[nMultiplierPos] = nVariableMultiplier;
-#endif
-   }
+    }
 }
 
 
