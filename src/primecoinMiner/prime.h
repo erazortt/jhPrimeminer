@@ -28,8 +28,8 @@ extern unsigned int nSieveExtensions;
 extern unsigned int nMaxSieveSize;
 extern unsigned int nSievePercentage;
 extern bool nPrintDebugMessages;
-extern unsigned long nOverrideTargetValue;
-extern unsigned int nOverrideBTTargetValue;
+extern int nOverrideTargetValue;
+extern int nOverrideBTTargetValue;
 static const uint256 hashBlockHeaderLimit = (uint256(1) << 255);
 static const CBigNum bnOne = 1;
 static const CBigNum bnTwo = 2;
@@ -158,7 +158,7 @@ class CSieveOfEratosthenes
    sieve_word_t *vfExtendedCompositeCunningham2;
    static const unsigned int nWordBits = 8 * sizeof(sieve_word_t);
    static const unsigned int nWordNotBits = nWordBits-1;
-   static const unsigned int nWordShift = log2(nWordBits);
+   static const unsigned int nWordShift;
 
    unsigned int nCandidatesWords;
    unsigned int nCandidatesBytes;

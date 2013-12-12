@@ -4,8 +4,8 @@ CFLAGS = -march=native -mtune=native -Wall -Wextra -std=c++0x -Ofast -fomit-fram
 #CFLAGS = -march=native -mtune=native -Wall -Wextra -std=c++0x -O3 -fomit-frame-pointer
 
 OSVERSION := $(shell uname -s)
-LIBS = -lmpir -lcrypto -lssl -pthread
-#LIBS = -lgmp -lcrypto -lssl -pthread
+#LIBS = -lmpir -lcrypto -lssl -pthread
+LIBS = -lgmp -lcrypto -lssl -pthread
 
 ifeq ($(OSVERSION),Linux)
 	LIBS += -lrt

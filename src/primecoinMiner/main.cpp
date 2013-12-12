@@ -15,8 +15,8 @@ volatile int valid_shares = 0;
 unsigned int nMaxSieveSize;
 unsigned int nSievePercentage;
 bool nPrintDebugMessages;
-unsigned long nOverrideTargetValue;
-unsigned int nOverrideBTTargetValue;
+int nOverrideTargetValue;
+int nOverrideBTTargetValue;
 char* dt;
 bool useGetBlockTemplate = true;
 uint8 decodedWalletAddress[32];
@@ -1172,9 +1172,9 @@ void jhMiner_parseCommandline(int argc, char **argv)
             exit(0);
          }
          commandlineInput.targetOverride = atoi(argv[cIdx]);
-         if( commandlineInput.targetOverride < 0 || commandlineInput.targetOverride > 100 )
+         if( commandlineInput.targetOverride < -1 || commandlineInput.targetOverride > 100 )
          {
-            printf("-target parameter out of range, must be between 0 - 100");
+            printf("-target parameter out of range, must be between -1 and 100");
             exit(0);
          }
          cIdx++;
@@ -1188,9 +1188,9 @@ void jhMiner_parseCommandline(int argc, char **argv)
             exit(0);
          }
          commandlineInput.targetBTOverride = atoi(argv[cIdx]);
-         if( commandlineInput.targetBTOverride < 0 || commandlineInput.targetBTOverride > 100 )
+         if( commandlineInput.targetBTOverride < -1 || commandlineInput.targetBTOverride > 100 )
          {
-            printf("-bttarget parameter out of range, must be between 0 - 100");
+            printf("-bttarget parameter out of range, must be between -1 and 100");
             exit(0);
          }
          cIdx++;
@@ -1430,8 +1430,8 @@ void PrintCurrentSettings()
    printf("Prime Limit (-primes): %u\n", commandlineInput.sievePrimeLimit);
    printf("Primorial Multiplier (-m): %u\n", primeStats.nPrimorialMultiplier);
    printf("L1CacheElements (-c): %u\n", primeStats.nL1CacheElements);	
-   printf("Chain Length Target (-target): %u\n", nOverrideTargetValue);	
-   printf("BiTwin Length Target (-bttarget): %u\n", nOverrideBTTargetValue);	
+   printf("Chain Length Target (-target): %i\n", nOverrideTargetValue);	
+   printf("BiTwin Length Target (-bttarget): %i\n", nOverrideBTTargetValue);	
    printf("Sieve Extensions (-se): %u\n", nSieveExtensions);	
    printf("Total Runtime: %u Days, %u Hours, %u minutes, %u seconds\n", days, hours, minutes, seconds);	
    if (!bSoloMining)
@@ -1563,33 +1563,31 @@ DWORD * threadHearthBeat;
 static void watchdog_thread(std::map<DWORD, HANDLE> threadMap)
 {
    DWORD maxIdelTime = 30 * 1000; // Allow 30 secs of "idle" time between heartbeats before a thread is deemed "dead".
-   std::map <DWORD, HANDLE> :: const_iterator thMap_Iter;
+   std::map <DWORD, HANDLE> :: iterator thMap_Iter;
    while(true)
    {
       if ((workData.protocolMode == MINER_PROTOCOL_XPUSHTHROUGH) && (!IsXptClientConnected()))
       {
          // Miner is not connected, wait 5 secs before trying again.
          Sleep(5000);
-         {
-            Sleep(10);
-            continue;
-         }
-         DWORD currentTick = GetTickCount();
+	 continue;
+      }
 
-         for (int i = 0; i < threadMap.size(); i++)
-         {
-            DWORD heartBeatTick = threadHearthBeat[i];
-            if (currentTick - heartBeatTick > maxIdelTime)
+      DWORD currentTick = GetTickCount();
+      for (int i = 0; i < threadMap.size(); i++)
+	{
+	  DWORD heartBeatTick = threadHearthBeat[i];
+	  if (currentTick - heartBeatTick > maxIdelTime)
             {
-               //restart the thread
-               printf("Restarting thread %d\n", i);
-               //__try
-               //{
+	      //restart the thread
+	      printf("Restarting thread %d\n", i);
+	      //__try
+	      //{
 
-               //HANDLE h = threadMap.at(i);
-               thMap_Iter = threadMap.find(i);
-               if (thMap_Iter != threadMap.end())
-               {
+	      //HANDLE h = threadMap.at(i);
+	      thMap_Iter = threadMap.find(i);
+	      if (thMap_Iter != threadMap.end())
+		{
                   HANDLE h = thMap_Iter->second;
                   TerminateThread( h, 0);
                   Sleep(1000);
@@ -1603,17 +1601,17 @@ static void watchdog_thread(std::map<DWORD, HANDLE> threadMap)
 
                   threadMap.insert(thMapKeyVal(i,h));
 
-               }
-               /*}
-               __except(EXCEPTION_EXECUTE_HANDLER)
-               {
-               }*/
+		}
+	      /*}
+		__except(EXCEPTION_EXECUTE_HANDLER)
+		{
+		}*/
             }
-         }
-         Sleep( 1*1000);
-      }
+	}
+      Sleep(1000);
    }
 }
+
 
 void OnNewBlock(double nBitsShare, double nBits, unsigned long blockHeight)
 {

@@ -31,7 +31,7 @@ uint64 GetTimeMicros()
 #endif
 }
 
-
+const unsigned int CSieveOfEratosthenes::nWordShift = log2(nWordBits);
 std::vector<unsigned int> vPrimes;
 unsigned int nSieveExtensions = nDefaultSieveExtensions;
 
@@ -875,6 +875,12 @@ bool MineProbablePrimeChain(CSieveOfEratosthenes*& psieve, primecoinBlock_t* blo
       lSieveBTTarget = nOverrideBTTargetValue;
    else
       lSieveBTTarget = lSieveTarget; // Set to same as target
+
+   if (nOverrideTargetValue < 0)
+     lSieveTarget+=nOverrideTargetValue;
+
+   if (nOverrideBTTargetValue < 0)
+     lSieveBTTarget+=nOverrideBTTargetValue;
 
    //int64 nStart, nCurrent; // microsecond timer
    if (psieve == NULL)

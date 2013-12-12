@@ -128,7 +128,7 @@ typedef void* (*LPTHREAD_START_ROUTINE)(void* lpThreadParameter);
 inline HANDLE CreateThread(LPVOID, size_t stackSize, LPTHREAD_START_ROUTINE a3, LPVOID params, DWORD dwFlags, DWORD* pdwThreadID)
 {
   HANDLE threadId;
-  pthread_create(&threadId, nullptr, a3, params);
+  pthread_create(&threadId, NULL, a3, params);
   pthread_attr_t threadAttr;
   pthread_attr_init(&threadAttr);
   // Set the stack size of the thread
